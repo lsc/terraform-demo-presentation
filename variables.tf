@@ -5,6 +5,6 @@ variable "azs"               { type = "list" }
 variable "private_subnets"   { type = "list" }
 variable "public_subnets"    { type = "list" }
 variable "allowed_cidrs" {
-  type    = list
+  type    = "list"
   default = [ "0.0.0.0/0" ]
 }
