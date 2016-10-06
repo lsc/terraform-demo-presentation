@@ -15,8 +15,9 @@ module "vpc" {
 resource "aws_elb" "demo" {
   name = "aws-sthlm-20161006"
 
-  subnets   = [ "${module.vpc.public_subnets}" ]
-  instances = [ "${aws_instance.demo.*.id}" ]
+  subnets         = [ "${module.vpc.public_subnets}" ]
+  instances       = [ "${aws_instance.demo.*.id}" ]
+  security_groups = [ "${aws_security_group.elb_sg.id}" ]
 
   listener {
     instance_port     = 80
@@ -46,24 +47,26 @@ resource "aws_security_group" "elb_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = "${var.allowed_cidrs}"
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = "${var.allowed_cidrs}"
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 }
 
 resource "aws_instance" "demo" {
-  count         = "${length(var.azs)}"
-  ami           = "ami-3b9ada48"
-  instance_type = "t2.micro"
-  subnet_id     = "${element(module.vpc.private_subnets, count.index)}"
+  count                  = "${length(var.azs)}"
+  ami                    = "ami-3b9ada48"
+  instance_type          = "t2.micro"
+  subnet_id              = "${element(module.vpc.public_subnets, count.index)}"
+  vpc_security_group_ids = [ "${aws_security_group.instance_sg.id}" ]
 
   tags {
+    Name        = "aws-sthlm-${count.index}"
     Environment = "demo"
     Terraformed = "true"
   }
@@ -76,20 +79,30 @@ resource "aws_security_group" "instance_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = "${var.allowed_cidrs}"
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [ "${var.vpc_cidr}" ]
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = "${var.allowed_cidrs}"
+    cidr_blocks = [ "0.0.0.0/0" ]
   }
 }
+
+output "Instances IPs" {
+  value = [ "${aws_instance.demo.*.public_ip}" ]
+}
+
+output "Load balancer name" {
+  value = "${aws_elb.demo.dns_name}"
+}
+
+
