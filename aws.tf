@@ -59,7 +59,7 @@ resource "aws_security_group" "elb_sg" {
 
 resource "aws_instance" "demo" {
   count         = "${length(var.azs)}"
-  ami           = "ami-ed82e39e"
+  ami           = "ami-3b9ada48"
   instance_type = "t2.micro"
   subnet_id     = "${element(module.vpc.private_subnets, count.index)}"
 

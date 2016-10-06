@@ -4,8 +4,8 @@ provider "dnsimple" {
 }
 
 resource "dnsimple_record" "demo" {
-  domain = "loweschmidt.se"
-  name   = "demo"
+  domain = "slashignore.it"
+  name   = "just"
   value  = "${aws_elb.demo.dns_name}"
   type   = "CNAME"
   ttl    = "3600"
