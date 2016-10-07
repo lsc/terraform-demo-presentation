@@ -1,6 +1,6 @@
 provider "dnsimple" {
-  token = "oH9EvZWAfcQDIphIqyS"
-  email = "dnsimple@loweschmidt.se"
+  token = ""
+  email = ""
 }
 
 resource "dnsimple_record" "demo" {
