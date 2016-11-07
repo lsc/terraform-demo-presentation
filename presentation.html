@@ -31,9 +31,8 @@ class: center, middle
 
 1. About me
 2. What is Terraform
-3. Building blocks
-4. Code example
-5. Providers
+3. Providers
+4. Building blocks
 6. Modules
 7. Good practices
 8. Shortcomings
@@ -53,6 +52,10 @@ class: center, middle
 
 --
 
+- ## Currently working at Uprise (an EA owned studio)
+
+--
+
 - ## I like VIM a *bit* to much.
 
 ---
@@ -65,6 +68,28 @@ class: center, middle
 ### _Simple file based configuration gives you a single view of your entire infrastructure._
 
 ---
+class: middle, center
+
+# Providers
+
+---
+
+# Providers
+
+* AWS
+* Google Cloud Platform
+* Digital Ocean
+* Terraform
+* vSphere
+* DNSImple
+* Azure
+* Cloudflare
+* Rundeck
+* UltraDNS
+* Fastly
+* [...] (~50 of them)
+
+---
 
 # Building blocks
 
@@ -72,10 +97,10 @@ class: center, middle
 
 # Building blocks
 
-- ## Resources
+## Resources
 ### A resource is an entity on a provider, for example an EC2 instance.
 
-```ruby
+```
 resource aws_instance "demo" {
 	ami                    = "${var.demo_ami}"
 	instance_type          = "t2.nano"
@@ -91,12 +116,12 @@ resource aws_instance "demo" {
 
 ### variables.tf
 
-```ruby
+```
 	variable "demo_ami" { default = "" }
 ```
 
 ### terraform.tfvars
-```ruby
+```
 	demo_ami = "ami-3b9ada48"
 ```
 
@@ -106,10 +131,171 @@ resource aws_instance "demo" {
 
 ## Outputs
 
-```ruby
+```
 output "demo_instance_id" {
 	value = "${aws_instance.demo.id}"
 }```
+
+---
+# Building Blocks
+
+## Data Sources
+
+```
+data "availability_zones" "available" {}
+```
+
+```
+resource "aws_subnet" "internal" {
+	count             = "${length(data.availability_zones.availabable)}"
+	availability_zone = "${element(data.availability_zones.available.names, count.index)}"
+	[...]
+}```
+
+---
+
+# Modules
+
+## A collection of resources exposed as one entity
+
+## For example a VPC module for AWS that configures
+* A VPC
+* A couple of internal subnets
+* A couple of external networks
+* Route tables
+* Gateways for the external networks
+* And some NAT GW:s for those special occasions
+
+---
+
+# Modules
+## A collection of resources exposed as one entity
+### Might look a bit like this to use
+```
+module "vpc" {
+  source             = "github.com/terraform-community-modules/tf_aws_vpc"
+
+  name               = "my-vpc"
+
+  cidr               = "10.0.0.0/16"
+  private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  enable_nat_gateway = "true"
+
+  azs                = ["us-west-2a", "us-west-2b", "us-west-2c"]
+}```
+
+---
+
+# Good practices
+
+- ## Be liberal with variables.
+
+--
+
+- ## Start small. (You will run `tf destroy`)
+
+--
+
+- ## Make states as small as sensible.
+
+--
+
+- ## Store state remotely.
+
+--
+
+- ## One repo per module.
+
+---
+
+# Good practices
+
+## Repository layout
+```
+* my_terraform_infra
+	* providers
+		* aws
+			* eu_west_1_staging
+				* main.tf (Symlinked to my_terraform_infra/main.tf)
+				* staging.tf
+				* terraform.tfvars
+			* eu_west_1_production
+				* main.tf (Symlinked to my_terraform_infra/main.tf)
+				* production.tf
+				* [...]
+	* modules
+		* aws
+			* my_service
+		* datadog
+			* my_service_dashboard
+* main.tf
+```
+
+---
+
+# Shortcomings
+
+--
+
+- ## No flow control.
+
+--
+
+- ### (Unless you do some element() default value trickery)
+
+--
+
+- ## Looping is limited to resources that supports `count`
+
+--
+
+- ## Error reporting and feedback can be quite confusing
+
+--
+
+- ### (But thats more often the providers API that's not great)
+
+---
+
+class: center, middle
+# DEMO TIME! (Applause)
+
+---
+
+class: center, middle
+
+# Collaborating
+
+---
+
+# Collaborating
+
+- ## Store state remote (yes, this is the second time i mention it).
+
+--
+
+- ### For example on S3.
+
+--
+
+- ### Or use terragrunt, it gives you state locking via DynamoDB.
+
+--
+
+- ## Or, you know support Hashicorp and buy an Atlas subscription.
+
+---
+class: center, middle
+
+# Questions ?
+
+### @loweschmidt
+### https://github.com/lsc/terraform-demo-presentation
+### lowe@loweschmidt.se
+### www.loweschmidt.se
+
 
     </textarea>
     <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
